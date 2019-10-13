@@ -1,0 +1,103 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'my service test
+
+  '
+Globals:
+  Api:
+    Cors:
+      AllowHeaders: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'''
+      AllowMethods: '''OPTIONS,POST,GET'''
+      AllowOrigin: '''*'''
+    TracingEnabled: true
+  Function:
+    MemorySize: 1024
+    Timeout: 5
+    Tracing: Active
+Outputs:
+  ProdApiEndpoint:
+    Description: API Prod stage endpoint
+    Value:
+      Fn::Sub: https://${Api}.execute-api.${AWS::Region}.amazonaws.com/Prod/
+Resources:
+  AddName:
+    Properties:
+      CodeUri: s3://meu-bucket-artefatos-enrico/4d1cf6d45272fa3a8187cad3d7712d53
+      Environment:
+        Variables:
+          TABLE_NAME:
+            Ref: NamesTable
+          TOPIC_NAME:
+            Ref: NewNameTopic
+      Events:
+        AddUserAPICall:
+          Properties:
+            Method: POST
+            Path: /users
+            RestApiId:
+              Ref: Api
+          Type: Api
+      Handler: index.handler
+      Policies:
+      - DynamoDBCrudPolicy:
+          TableName:
+            Ref: NamesTable
+      - SNSPublishMessagePolicy:
+          TopicName:
+            Fn::Sub: ${NewNameTopic.TopicName}
+      Runtime: nodejs8.10
+    Type: AWS::Serverless::Function
+  Api:
+    Properties:
+      EndpointConfiguration: REGIONAL
+      StageName: Prod
+    Type: AWS::Serverless::Api
+  GetNames:
+    Properties:
+      CodeUri: s3://meu-bucket-artefatos-enrico/a5a02282072a4e3a71774f3d856e3a5f
+      Environment:
+        Variables:
+          TABLE_NAME:
+            Ref: NamesTable
+      Events:
+        GetUsersAPICall:
+          Properties:
+            Method: GET
+            Path: /users
+            RestApiId:
+              Ref: Api
+          Type: Api
+      Handler: index.handler
+      Policies:
+      - DynamoDBReadPolicy:
+          TableName:
+            Ref: NamesTable
+      Runtime: nodejs8.10
+    Type: AWS::Serverless::Function
+  ListenerNewName:
+    Properties:
+      CodeUri: s3://meu-bucket-artefatos-enrico/0aa2cb6ce2758e09045ef66924446d6d
+      Events:
+        Listener:
+          Properties:
+            FilterPolicy:
+              Status:
+              - Success
+            Topic:
+              Ref: NewNameTopic
+          Type: SNS
+      Handler: index.handler
+      Runtime: nodejs8.10
+    Type: AWS::Serverless::Function
+  NamesTable:
+    Properties:
+      AttributeDefinitions:
+      - AttributeName: id
+        AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      KeySchema:
+      - AttributeName: id
+        KeyType: HASH
+    Type: AWS::DynamoDB::Table
+  NewNameTopic:
+    Type: AWS::SNS::Topic
+Transform: AWS::Serverless-2016-10-31

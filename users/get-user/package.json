@@ -1,0 +1,8 @@
+{
+  "name": "user-get",
+  "version": "1.0.0",
+  "description": "Test lib",
+  "dependencies": {
+    "aws-xray-sdk-core": "^2.4.0"
+  }
+}

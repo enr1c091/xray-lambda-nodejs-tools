@@ -1,0 +1,10 @@
+{
+  "name": "test",
+  "version": "1.0.0",
+  "description": "Test service",
+  "dependencies": {
+    "aws-xray-sdk-core": "^2.4.0",
+    "uuid": "^3.3.3"
+  },
+  "scripts": {}
+}
