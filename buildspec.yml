@@ -1,0 +1,63 @@
+version: 0.2
+# Buildspec Reference Doc: https://docs.aws.amazon.com/codebuild/latest/userguide/build-spec-ref.html#build-spec-ref-syntax
+
+#################################
+# Runtime Environment Variables #
+#################################
+
+#env:
+#  variables:
+#    S3_BUCKET_NAME: "loyalty-service-lhr16"
+#    STACK_NAME: "loyalty-service-lhr16-stack"
+#    SQS_ARN: "arn:aws:sqs:eu-west-1:134306428657:MyTestQueue"
+#    SQS_NAME: "MyTestQueue"
+
+phases:
+  install:
+    runtime-versions:
+      # nodejs: 8
+      nodejs: 10
+      # python: 3.7
+    commands:
+      # Use Install phase to install packages or any pre-reqs you may need throughout the build (e.g. dev deps, security checks, etc.)
+      - echo "[Install phase]"
+      - npm install
+      - pip install --upgrade awscli aws-sam-cli
+  pre_build:
+    commands:
+      # Use Pre-Build phase to run tests, install any code deps or any other customization before build
+      # - echo "[Pre-Build phase]"
+  build:
+    commands:
+      # Use Build phase to build your artifacts (compile, package, etc.)
+      - echo "[Build phase]"
+      ## Building your code...
+      #- sam build --use-container
+      # We package the SAM template and create `packaged.yaml` file that will be used in our pipeline for deployment
+      # Here we separate Build from Deployment and segregate permissions for different steps
+      - sam package --template-file template.yaml --output-template-file package.yml --s3-bucket meu-bucket-artefatos-enrico
+  post_build:
+    commands:
+      # Use Post Build for notifications, git tags and any further customization after build
+      - echo "[Post-Build phase]"
+      - echo "SAM packaging completed on `date`"
+
+##################################
+# Build Artifacts to be uploaded #
+##################################
+
+artifacts:
+  files:
+    # list of local files relative to this build environment that will be added to the final artifact (zip)
+    # packaged.yaml contains SAM template pointing to final Lambda code artifact, ready to be deployed by CloudFormation
+    - package.yml
+  discard-paths: yes
+
+#########################################
+# Cache local files for subsequent runs #
+#########################################
+
+# cache:
+#   paths:
+  # List of path that CodeBuild will upload to S3 Bucket and use in subsequent runs to speed up Builds
+  # - '/root/.cache/pip'
