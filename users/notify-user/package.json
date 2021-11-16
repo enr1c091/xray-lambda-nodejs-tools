@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Test service",
   "dependencies": {
-    "aws-sdk": "^2.547.0",
+    "aws-sdk": "^2.814.0",
     "aws-xray-sdk-core": "^2.4.0"
   },
   "scripts": {}
